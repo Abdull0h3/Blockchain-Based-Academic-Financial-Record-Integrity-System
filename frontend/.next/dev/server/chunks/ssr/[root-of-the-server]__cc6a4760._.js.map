@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 14, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/ahmed/Desktop/Fifth%20semester/blockchain/project/frontend/app/page.js"],"sourcesContent":["export default function HomePage() {\r\n  return (\r\n    <main style={{ maxWidth: 800, margin: \"0 auto\", display: \"grid\", gap: 12 }}>\r\n      <h1>University Academic Record System</h1>\r\n      <p>Use the navigation bar to access Admin, Student, and Employer Verification modules.</p>\r\n      <ul>\r\n        <li>Admin: manage student data, grades, activities, clearance, and certificates.</li>\r\n        <li>Student: view academic summary and certificate status.</li>\r\n        <li>Verify: employer-side verification using student ID or QR scanner.</li>\r\n      </ul>\r\n    </main>\r\n  );\r\n}\r\n"],"names":[],"mappings":";;;;;;AAAe,SAAS;IACtB,qBACE,iTAAC;QAAK,OAAO;YAAE,UAAU;YAAK,QAAQ;YAAU,SAAS;YAAQ,KAAK;QAAG;;0BACvE,iTAAC;0BAAG;;;;;;0BACJ,iTAAC;0BAAE;;;;;;0BACH,iTAAC;;kCACC,iTAAC;kCAAG;;;;;;kCACJ,iTAAC;kCAAG;;;;;;kCACJ,iTAAC;kCAAG;;;;;;;;;;;;;;;;;;AAIZ"}}]
+}

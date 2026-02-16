@@ -1,0 +1,10 @@
+var R=require("../../../../chunks/[turbopack]_runtime.js")("server/app/api/admin/update-student-status/route.js")
+R.c("server/chunks/1a5d3_next_4d1fa7d3._.js")
+R.c("server/chunks/1a5d3_mysql2_d467eb75._.js")
+R.c("server/chunks/1a5d3_iconv-lite_a48bba12._.js")
+R.c("server/chunks/1a5d3_aws-ssl-profiles_lib_1544203f._.js")
+R.c("server/chunks/1a5d3_c85afe85._.js")
+R.c("server/chunks/[root-of-the-server]__e087468a._.js")
+R.c("server/chunks/96daa_next-internal_server_app_api_admin_update-student-status_route_actions_465ba09b.js")
+R.m("[project]/Desktop/Fifth semester/blockchain/project/frontend/node_modules/next/dist/esm/build/templates/app-route.js { INNER_APP_ROUTE => \"[project]/Desktop/Fifth semester/blockchain/project/frontend/app/api/admin/update-student-status/route.js [app-route] (ecmascript)\" } [app-route] (ecmascript)")
+module.exports=R.m("[project]/Desktop/Fifth semester/blockchain/project/frontend/node_modules/next/dist/esm/build/templates/app-route.js { INNER_APP_ROUTE => \"[project]/Desktop/Fifth semester/blockchain/project/frontend/app/api/admin/update-student-status/route.js [app-route] (ecmascript)\" } [app-route] (ecmascript)").exports

@@ -1,0 +1,35 @@
+{
+  "_format": "hh3-sol-build-info-1",
+  "id": "solc-0_8_20-42e8b3cc65672069324e2010ed087644f8bf8926",
+  "solcVersion": "0.8.20",
+  "solcLongVersion": "0.8.20+commit.a1b79de6",
+  "userSourceNameMap": {
+    "contracts/AcademicRecords.sol": "project/contracts/AcademicRecords.sol"
+  },
+  "input": {
+    "language": "Solidity",
+    "settings": {
+      "evmVersion": "shanghai",
+      "outputSelection": {
+        "*": {
+          "": [
+            "ast"
+          ],
+          "*": [
+            "abi",
+            "evm.bytecode",
+            "evm.deployedBytecode",
+            "evm.methodIdentifiers",
+            "metadata"
+          ]
+        }
+      },
+      "remappings": []
+    },
+    "sources": {
+      "project/contracts/AcademicRecords.sol": {
+        "content": "// SPDX-License-Identifier: MIT\r\npragma solidity ^0.8.20;\r\n\r\n/// @title AcademicRecords\r\n/// @notice University-managed academic records with on-chain verification.\r\ncontract AcademicRecords {\r\n    address public admin;\r\n\r\n    struct Record {\r\n        string studentId;\r\n        string documentHash;\r\n        string issuer;\r\n        uint256 timestamp;\r\n        bool isValid;\r\n    }\r\n\r\n    /*\r\n     * The records mapping is private by design:\r\n     * - We do not expose raw storage through an auto-generated public getter.\r\n     * - Reads are routed through a controlled function (verifyRecord), allowing\r\n     *   validation and API evolution without leaking internal storage patterns.\r\n     * - This improves encapsulation and reduces accidental data exposure risks.\r\n     */\r\n    mapping(string => Record) private records;\r\n\r\n    event RecordIssued(string studentId, string documentHash);\r\n    event RecordRevoked(string studentId);\r\n\r\n    modifier onlyAdmin() {\r\n        // Access control is enforced at the smart-contract boundary.\r\n        // Only the admin account can mutate academic records.\r\n        require(msg.sender == admin, \"Not authorized\");\r\n        _;\r\n    }\r\n\r\n    constructor() {\r\n        admin = msg.sender;\r\n    }\r\n\r\n    /// @notice Issues a new academic record (admin only).\r\n    /// @dev Immutability here means record content cannot be overwritten once issued.\r\n    ///      We enforce this by rejecting writes when a record already exists.\r\n    function issueRecord(\r\n        string memory _studentId,\r\n        string memory _documentHash,\r\n        string memory _issuer\r\n    ) external onlyAdmin {\r\n        require(bytes(_studentId).length > 0, \"studentId required\");\r\n        require(bytes(_documentHash).length > 0, \"documentHash required\");\r\n        require(bytes(_issuer).length > 0, \"issuer required\");\r\n        require(records[_studentId].timestamp == 0, \"Record already exists\");\r\n\r\n        records[_studentId] = Record({\r\n            studentId: _studentId,\r\n            documentHash: _documentHash,\r\n            issuer: _issuer,\r\n            timestamp: block.timestamp,\r\n            isValid: true\r\n        });\r\n\r\n        emit RecordIssued(_studentId, _documentHash);\r\n    }\r\n\r\n    /*\r\n     * verifyRecord acts as a controlled getter:\r\n     * - Instead of exposing `records` publicly, this function defines the official\r\n     *   read interface and returns a full Record struct for clients.\r\n     * - This return shape is friendly for ethers v6, which decodes structs as\r\n     *   tuple-like values with named fields.\r\n     */\r\n    function verifyRecord(string memory _studentId) public view returns (Record memory) {\r\n        Record memory record = records[_studentId];\r\n        require(record.timestamp != 0, \"Record not found\");\r\n        return record;\r\n    }\r\n\r\n    /// @notice Revokes a record by marking it invalid without deleting history.\r\n    function revokeRecord(string memory _studentId) external onlyAdmin {\r\n        Record storage record = records[_studentId];\r\n        require(record.timestamp != 0, \"Record not found\");\r\n        require(record.isValid, \"Record already revoked\");\r\n\r\n        record.isValid = false;\r\n        emit RecordRevoked(_studentId);\r\n    }\r\n\r\n    /*\r\n     * About digital signatures and msg.sender:\r\n     * Every Ethereum transaction is signed with the sender's private key.\r\n     * The EVM recovers the signer from that signature and exposes it as msg.sender.\r\n     * This is why `onlyAdmin` can trust msg.sender for authorization decisions.\r\n     */\r\n}\r\n"
+      }
+    }
+  }
+}

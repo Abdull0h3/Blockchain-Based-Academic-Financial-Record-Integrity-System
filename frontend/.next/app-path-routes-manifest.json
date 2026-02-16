@@ -1,0 +1,19 @@
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/admin/page": "/admin",
+  "/api/admin/add-activity/route": "/api/admin/add-activity",
+  "/api/admin/approve-clearance/route": "/api/admin/approve-clearance",
+  "/api/admin/assign-grade/route": "/api/admin/assign-grade",
+  "/api/admin/create-course/route": "/api/admin/create-course",
+  "/api/admin/create-student/route": "/api/admin/create-student",
+  "/api/admin/issue-certificate/route": "/api/admin/issue-certificate",
+  "/api/admin/revoke/route": "/api/admin/revoke",
+  "/api/admin/student-summary/route": "/api/admin/student-summary",
+  "/api/admin/update-student-status/route": "/api/admin/update-student-status",
+  "/api/issue/route": "/api/issue",
+  "/api/verify/route": "/api/verify",
+  "/page": "/",
+  "/student/page": "/student",
+  "/verify/page": "/verify"
+}
