@@ -1,0 +1,41 @@
+{
+  "_format": "hh-sol-cache-2",
+  "files": {
+    "D:\\MY-projects\\Blockchain-Based-Academic-Financial-Record-Integrity-System\\hardhat\\contracts\\AcademicRecords.sol": {
+      "lastModificationDate": 1770900789625,
+      "contentHash": "92d9638639fe1372066c37b75a11dc55",
+      "sourceName": "contracts/AcademicRecords.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "AcademicRecords"
+      ]
+    }
+  }
+}

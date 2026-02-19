@@ -1,3 +1,0 @@
-module.exports=[52688,(a,b,c)=>{let{createClientModuleProxy:d}=a.r(22648);a.n(d("[project]/Desktop/Fifth semester/blockchain/project/frontend/node_modules/next/dist/client/components/builtin/global-error.js <module evaluation>"))},44425,(a,b,c)=>{let{createClientModuleProxy:d}=a.r(22648);a.n(d("[project]/Desktop/Fifth semester/blockchain/project/frontend/node_modules/next/dist/client/components/builtin/global-error.js"))},28995,a=>{"use strict";a.i(52688);var b=a.i(44425);a.n(b)}];
-
-//# sourceMappingURL=1a5d3_next_dist_client_components_builtin_global-error_b980a263.js.map
