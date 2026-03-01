@@ -8,6 +8,10 @@ node_modules/
 .env.local
 .env
 
+# hardhat
+hardhat/artifacts/
+hardhat/cache/
+
 # logs
 npm-debug.log*
 
@@ -15,3 +19,5 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 
+# uploads (if your app stores uploads here)
+frontend/public/uploads/

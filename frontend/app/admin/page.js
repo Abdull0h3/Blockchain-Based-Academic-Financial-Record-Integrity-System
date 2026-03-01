@@ -1,70 +1,70 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function AdminDashboardPage() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
-  const [certificateStudentId, setCertificateStudentId] = useState("");
-  const [loadingAction, setLoadingAction] = useState("");
-  const [error, setError] = useState("");
+  const [certificateStudentId, setCertificateStudentId] = useState('');
+  const [loadingAction, setLoadingAction] = useState('');
+  const [error, setError] = useState('');
   const [result, setResult] = useState(null);
-  const [successMessage, setSuccessMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState('');
   const [summary, setSummary] = useState(null);
 
   const [studentForm, setStudentForm] = useState({
-    full_name: "",
-    student_id: "",
-    email: "",
-    program: "",
-    enrollment_year: "",
-    password: "",
+    full_name: '',
+    student_id: '',
+    email: '',
+    program: '',
+    enrollment_year: '',
+    password: '',
   });
   const [courseForm, setCourseForm] = useState({
-    course_code: "",
-    course_name: "",
-    credit_hours: "",
+    course_code: '',
+    course_name: '',
+    credit_hours: '',
   });
   const [gradeForm, setGradeForm] = useState({
-    student_id: "",
-    course_code: "",
-    grade: "",
-    semester: "",
-    year: "",
+    student_id: '',
+    course_code: '',
+    grade: '',
+    semester: '',
+    year: '',
   });
   const [activityForm, setActivityForm] = useState({
-    student_id: "",
-    activity_name: "",
-    description: "",
-    participation_date: "",
+    student_id: '',
+    activity_name: '',
+    description: '',
+    participation_date: '',
   });
   const [clearanceForm, setClearanceForm] = useState({
-    student_id: "",
+    student_id: '',
     tuition_paid: true,
     clearance_approved: true,
   });
   const [statusForm, setStatusForm] = useState({
-    student_id: "",
-    status: "active",
-    graduation_year: "",
+    student_id: '',
+    status: 'active',
+    graduation_year: '',
   });
-  const [summaryStudentId, setSummaryStudentId] = useState("");
+  const [summaryStudentId, setSummaryStudentId] = useState('');
 
   // Check authentication on mount
   useEffect(() => {
     async function checkAuth() {
       try {
-        const response = await fetch("/api/auth/me");
+        const response = await fetch('/api/auth/me');
         const data = await response.json();
-        if (data.authenticated && data.user?.role === "admin") {
+        if (data.authenticated && data.user?.role === 'admin') {
           setIsAuthenticated(true);
         } else {
-          router.push("/admin/login");
+          router.push('/admin/login');
         }
       } catch {
-        router.push("/admin/login");
+        router.push('/admin/login');
       } finally {
         setCheckingAuth(false);
       }
@@ -73,27 +73,27 @@ export default function AdminDashboardPage() {
   }, [router]);
 
   async function handleLogout() {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/admin/login");
+    await fetch('/api/auth/logout', { method: 'POST' });
+    router.push('/admin/login');
   }
 
   async function postJson(endpoint, body, actionName, resetFn) {
-    setError("");
-    setSuccessMessage("");
+    setError('');
+    setSuccessMessage('');
     setResult(null);
     setLoadingAction(actionName);
 
     try {
       const response = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
       const payload = await response.json();
       if (!response.ok) {
-        throw new Error(payload.error || "Request failed");
+        throw new Error(payload.error || 'Request failed');
       }
-      setSuccessMessage(payload.message || "Operation completed");
+      setSuccessMessage(payload.message || 'Operation completed');
       if (payload.blockchainTxHash || payload.pdfPath) {
         setResult(payload);
       }
@@ -101,60 +101,71 @@ export default function AdminDashboardPage() {
         resetFn();
       }
     } catch (requestError) {
-      setError(requestError.message || "Unexpected error occurred");
+      setError(requestError.message || 'Unexpected error occurred');
     } finally {
-      setLoadingAction("");
+      setLoadingAction('');
     }
   }
 
   async function runAction(action) {
     const normalizedStudentId = certificateStudentId.trim();
     if (!normalizedStudentId) {
-      setError("Please enter a valid student ID");
+      setError('Please enter a valid student ID');
       return;
     }
 
     const endpoint =
-      action === "issue" ? "/api/admin/issue-certificate" : "/api/admin/revoke";
+      action === 'issue' ? '/api/admin/issue-certificate' : '/api/admin/revoke';
     await postJson(endpoint, { studentId: normalizedStudentId }, action);
   }
 
   async function fetchSummary() {
     const id = summaryStudentId.trim();
     if (!id) {
-      setError("Enter a student ID to view summary");
+      setError('Enter a student ID to view summary');
       return;
     }
 
-    setError("");
-    setSuccessMessage("");
-    setLoadingAction("summary");
+    setError('');
+    setSuccessMessage('');
+    setLoadingAction('summary');
 
     try {
-      const response = await fetch(`/api/admin/student-summary?studentId=${encodeURIComponent(id)}`);
+      const response = await fetch(
+        `/api/admin/student-summary?studentId=${encodeURIComponent(id)}`,
+      );
       const payload = await response.json();
       if (!response.ok) {
-        throw new Error(payload.error || "Failed to fetch summary");
+        throw new Error(payload.error || 'Failed to fetch summary');
       }
       setSummary(payload.data);
     } catch (requestError) {
-      setError(requestError.message || "Failed to fetch summary");
+      setError(requestError.message || 'Failed to fetch summary');
       setSummary(null);
     } finally {
-      setLoadingAction("");
+      setLoadingAction('');
     }
   }
 
-  const isIssueLoading = loadingAction === "issue";
-  const isRevokeLoading = loadingAction === "revoke";
+  const isIssueLoading = loadingAction === 'issue';
+  const isRevokeLoading = loadingAction === 'revoke';
   const isBusy = Boolean(loadingAction);
 
   // Show loading while checking authentication
   if (checkingAuth) {
     return (
-      <main style={{ maxWidth: 900, margin: "2rem auto", textAlign: "center" }}>
-        <p>Loading...</p>
-      </main>
+      <div
+        className="main-container"
+        style={{ textAlign: 'center', paddingTop: '4rem' }}
+      >
+        <span
+          className="spinner"
+          style={{ width: 40, height: 40, borderWidth: 3 }}
+        ></span>
+        <p style={{ marginTop: '1rem', color: 'var(--text-secondary)' }}>
+          Loading...
+        </p>
+      </div>
     );
   }
 
@@ -164,383 +175,656 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <main
-      style={{
-        maxWidth: "900px",
-        margin: "0 auto",
-        padding: "2rem 1.25rem",
-        fontFamily: "Arial, sans-serif",
-        display: "grid",
-        gap: "1rem",
-      }}
-    >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h1 style={{ marginBottom: 0 }}>Academic Record Admin Dashboard</h1>
-        <button onClick={handleLogout} style={{ padding: "0.5rem 1rem" }}>
+    <div className="main-container">
+      <div className="flex justify-between items-center mb-2">
+        <div>
+          <h1 className="page-title">Admin Dashboard</h1>
+          <p className="page-subtitle">
+            Manage students, courses, grades, and certificates
+          </p>
+        </div>
+        <button onClick={handleLogout} className="btn btn-secondary">
           Logout
         </button>
       </div>
-      <p style={{ marginTop: 0 }}>
-        Admin actions are executed via backend API routes only. This keeps private keys in the
-        backend and enforces secure DApp architecture.
-      </p>
 
-      <section
-        style={{
-          border: "1px solid #ddd",
-          borderRadius: 12,
-          padding: "1rem",
-          display: "grid",
-          gap: "0.75rem",
-        }}
-      >
-        <h2 style={{ margin: 0 }}>Certificate Operations</h2>
-        <label htmlFor="studentId" style={{ display: "block", marginBottom: 4, fontWeight: 700 }}>
-          Student ID
-        </label>
-        <input
-          id="studentId"
-          value={certificateStudentId}
-          onChange={(event) => setCertificateStudentId(event.target.value)}
-          placeholder="e.g. STU-1001"
-          style={{ width: "100%", padding: "0.6rem" }}
-          disabled={isBusy}
-        />
+      {error && <div className="alert alert-error">{error}</div>}
+      {successMessage && (
+        <div className="alert alert-success">{successMessage}</div>
+      )}
 
-        <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-          <button
-            onClick={() => runAction("issue")}
-            disabled={isIssueLoading || isRevokeLoading}
-            style={{ minWidth: 170 }}
-          >
-            {isIssueLoading ? "Issuing..." : "Issue Certificate"}
-          </button>
-          <button
-            onClick={() => runAction("revoke")}
-            disabled={isIssueLoading || isRevokeLoading}
-            style={{ minWidth: 170 }}
-          >
-            {isRevokeLoading ? "Revoking..." : "Revoke Certificate"}
-          </button>
+      {/* Certificate Operations */}
+      <div className="card mb-2">
+        <div className="card-header">
+          <h2 className="card-title">🎓 Certificate Operations</h2>
         </div>
-      </section>
-
-      <section style={{ border: "1px solid #ddd", borderRadius: 12, padding: "1rem" }}>
-        <h2 style={{ marginTop: 0 }}>Create Student</h2>
-        <div style={{ display: "grid", gap: 8 }}>
-          <input
-            placeholder="Full Name"
-            value={studentForm.full_name}
-            onChange={(e) => setStudentForm((s) => ({ ...s, full_name: e.target.value }))}
-          />
-          <input
-            placeholder="Student ID"
-            value={studentForm.student_id}
-            onChange={(e) => setStudentForm((s) => ({ ...s, student_id: e.target.value }))}
-          />
-          <input
-            placeholder="Email"
-            value={studentForm.email}
-            onChange={(e) => setStudentForm((s) => ({ ...s, email: e.target.value }))}
-          />
-          <input
-            placeholder="Program"
-            value={studentForm.program}
-            onChange={(e) => setStudentForm((s) => ({ ...s, program: e.target.value }))}
-          />
-          <input
-            placeholder="Enrollment Year"
-            value={studentForm.enrollment_year}
-            onChange={(e) => setStudentForm((s) => ({ ...s, enrollment_year: e.target.value }))}
-          />
-          <input
-            type="password"
-            placeholder="Initial Password"
-            value={studentForm.password}
-            onChange={(e) => setStudentForm((s) => ({ ...s, password: e.target.value }))}
-          />
-          <button
-            disabled={isBusy}
-            onClick={() =>
-              postJson("/api/admin/create-student", studentForm, "create-student", () =>
-                setStudentForm({ full_name: "", student_id: "", email: "", program: "", enrollment_year: "", password: "" })
-              )
-            }
-          >
-            {loadingAction === "create-student" ? "Creating..." : "Create Student"}
-          </button>
-        </div>
-      </section>
-
-      <section style={{ border: "1px solid #ddd", borderRadius: 12, padding: "1rem" }}>
-        <h2 style={{ marginTop: 0 }}>Create Course</h2>
-        <div style={{ display: "grid", gap: 8 }}>
-          <input
-            placeholder="Course Code"
-            value={courseForm.course_code}
-            onChange={(e) => setCourseForm((s) => ({ ...s, course_code: e.target.value }))}
-          />
-          <input
-            placeholder="Course Name"
-            value={courseForm.course_name}
-            onChange={(e) => setCourseForm((s) => ({ ...s, course_name: e.target.value }))}
-          />
-          <input
-            placeholder="Credit Hours"
-            value={courseForm.credit_hours}
-            onChange={(e) => setCourseForm((s) => ({ ...s, credit_hours: e.target.value }))}
-          />
-          <button
-            disabled={isBusy}
-            onClick={() =>
-              postJson("/api/admin/create-course", courseForm, "create-course", () =>
-                setCourseForm({ course_code: "", course_name: "", credit_hours: "" })
-              )
-            }
-          >
-            {loadingAction === "create-course" ? "Creating..." : "Create Course"}
-          </button>
-        </div>
-      </section>
-
-      <section style={{ border: "1px solid #ddd", borderRadius: 12, padding: "1rem" }}>
-        <h2 style={{ marginTop: 0 }}>Update Student Status</h2>
-        <div style={{ display: "grid", gap: 8 }}>
-          <input
-            placeholder="Student ID"
-            value={statusForm.student_id}
-            onChange={(e) => setStatusForm((s) => ({ ...s, student_id: e.target.value }))}
-          />
-          <select
-            value={statusForm.status}
-            onChange={(e) => setStatusForm((s) => ({ ...s, status: e.target.value }))}
-          >
-            <option value="active">Active</option>
-            <option value="graduated">Graduated</option>
-          </select>
-          <input
-            placeholder="Graduation Year (required if Graduated)"
-            value={statusForm.graduation_year}
-            onChange={(e) => setStatusForm((s) => ({ ...s, graduation_year: e.target.value }))}
-            disabled={statusForm.status !== "graduated"}
-          />
-          <button
-            disabled={isBusy}
-            onClick={() =>
-              postJson("/api/admin/update-student-status", statusForm, "update-student-status", () =>
-                setStatusForm({ student_id: "", status: "active", graduation_year: "" })
-              )
-            }
-          >
-            {loadingAction === "update-student-status" ? "Updating..." : "Update Status"}
-          </button>
-        </div>
-      </section>
-
-      <section style={{ border: "1px solid #ddd", borderRadius: 12, padding: "1rem" }}>
-        <h2 style={{ marginTop: 0 }}>Assign Course Grade</h2>
-        <div style={{ display: "grid", gap: 8 }}>
-          <input
-            placeholder="Student ID"
-            value={gradeForm.student_id}
-            onChange={(e) => setGradeForm((s) => ({ ...s, student_id: e.target.value }))}
-          />
-          <input
-            placeholder="Course Code"
-            value={gradeForm.course_code}
-            onChange={(e) => setGradeForm((s) => ({ ...s, course_code: e.target.value }))}
-          />
-          <input
-            placeholder="Grade (e.g. A, B+)"
-            value={gradeForm.grade}
-            onChange={(e) => setGradeForm((s) => ({ ...s, grade: e.target.value }))}
-          />
-          <input
-            placeholder="Semester (e.g. Fall)"
-            value={gradeForm.semester}
-            onChange={(e) => setGradeForm((s) => ({ ...s, semester: e.target.value }))}
-          />
-          <input
-            placeholder="Year"
-            value={gradeForm.year}
-            onChange={(e) => setGradeForm((s) => ({ ...s, year: e.target.value }))}
-          />
-          <button
-            disabled={isBusy}
-            onClick={() =>
-              postJson("/api/admin/assign-grade", gradeForm, "assign-grade", () =>
-                setGradeForm({ student_id: "", course_code: "", grade: "", semester: "", year: "" })
-              )
-            }
-          >
-            {loadingAction === "assign-grade" ? "Saving..." : "Assign Grade"}
-          </button>
-        </div>
-      </section>
-
-      <section style={{ border: "1px solid #ddd", borderRadius: 12, padding: "1rem" }}>
-        <h2 style={{ marginTop: 0 }}>Record Activity Participation</h2>
-        <div style={{ display: "grid", gap: 8 }}>
-          <input
-            placeholder="Student ID"
-            value={activityForm.student_id}
-            onChange={(e) => setActivityForm((s) => ({ ...s, student_id: e.target.value }))}
-          />
-          <input
-            placeholder="Activity Name"
-            value={activityForm.activity_name}
-            onChange={(e) => setActivityForm((s) => ({ ...s, activity_name: e.target.value }))}
-          />
-          <input
-            placeholder="Description (optional)"
-            value={activityForm.description}
-            onChange={(e) => setActivityForm((s) => ({ ...s, description: e.target.value }))}
-          />
-          <input
-            type="date"
-            value={activityForm.participation_date}
-            onChange={(e) => setActivityForm((s) => ({ ...s, participation_date: e.target.value }))}
-          />
-          <button
-            disabled={isBusy}
-            onClick={() =>
-              postJson("/api/admin/add-activity", activityForm, "add-activity", () =>
-                setActivityForm({
-                  student_id: "",
-                  activity_name: "",
-                  description: "",
-                  participation_date: "",
-                })
-              )
-            }
-          >
-            {loadingAction === "add-activity" ? "Saving..." : "Add Activity"}
-          </button>
-        </div>
-      </section>
-
-      <section style={{ border: "1px solid #ddd", borderRadius: 12, padding: "1rem" }}>
-        <h2 style={{ marginTop: 0 }}>Approve Financial Clearance</h2>
-        <div style={{ display: "grid", gap: 8 }}>
-          <input
-            placeholder="Student ID"
-            value={clearanceForm.student_id}
-            onChange={(e) => setClearanceForm((s) => ({ ...s, student_id: e.target.value }))}
-          />
-          <label>
-            <input
-              type="checkbox"
-              checked={clearanceForm.tuition_paid}
-              onChange={(e) => setClearanceForm((s) => ({ ...s, tuition_paid: e.target.checked }))}
-            />{" "}
-            Tuition Paid
+        <div className="form-group">
+          <label htmlFor="studentId" className="form-label">
+            Student ID
           </label>
-          <label>
+          <input
+            id="studentId"
+            className="form-input"
+            value={certificateStudentId}
+            onChange={(event) => setCertificateStudentId(event.target.value)}
+            placeholder="e.g. STU-1001"
+            disabled={isBusy}
+          />
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={() => runAction('issue')}
+            disabled={isIssueLoading || isRevokeLoading}
+            className="btn btn-success"
+          >
+            {isIssueLoading ? (
+              <>
+                <span className="spinner"></span> Issuing...
+              </>
+            ) : (
+              'Issue Certificate'
+            )}
+          </button>
+          <button
+            onClick={() => runAction('revoke')}
+            disabled={isIssueLoading || isRevokeLoading}
+            className="btn btn-danger"
+          >
+            {isRevokeLoading ? (
+              <>
+                <span className="spinner"></span> Revoking...
+              </>
+            ) : (
+              'Revoke Certificate'
+            )}
+          </button>
+        </div>
+        {result && (
+          <div className="alert alert-info mt-2">
+            {result.blockchainTxHash && (
+              <p style={{ margin: 0 }}>TX: {result.blockchainTxHash}</p>
+            )}
+            {result.pdfPath && (
+              <p style={{ margin: '0.25rem 0 0 0' }}>PDF: {result.pdfPath}</p>
+            )}
+          </div>
+        )}
+      </div>
+
+      <div className="grid grid-2 mb-2">
+        {/* Create Student */}
+        <div className="card">
+          <div className="card-header">
+            <h3 className="card-title">👤 Create Student</h3>
+          </div>
+          <div className="form-group">
             <input
-              type="checkbox"
-              checked={clearanceForm.clearance_approved}
+              className="form-input"
+              placeholder="Full Name"
+              value={studentForm.full_name}
               onChange={(e) =>
-                setClearanceForm((s) => ({ ...s, clearance_approved: e.target.checked }))
+                setStudentForm((s) => ({ ...s, full_name: e.target.value }))
               }
-            />{" "}
-            Clearance Approved
-          </label>
+            />
+          </div>
+          <div className="form-group">
+            <input
+              className="form-input"
+              placeholder="Student ID"
+              value={studentForm.student_id}
+              onChange={(e) =>
+                setStudentForm((s) => ({ ...s, student_id: e.target.value }))
+              }
+            />
+          </div>
+          <div className="form-group">
+            <input
+              className="form-input"
+              placeholder="Email"
+              value={studentForm.email}
+              onChange={(e) =>
+                setStudentForm((s) => ({ ...s, email: e.target.value }))
+              }
+            />
+          </div>
+          <div className="form-group">
+            <input
+              className="form-input"
+              placeholder="Program"
+              value={studentForm.program}
+              onChange={(e) =>
+                setStudentForm((s) => ({ ...s, program: e.target.value }))
+              }
+            />
+          </div>
+          <div className="form-group">
+            <input
+              className="form-input"
+              placeholder="Enrollment Year"
+              value={studentForm.enrollment_year}
+              onChange={(e) =>
+                setStudentForm((s) => ({
+                  ...s,
+                  enrollment_year: e.target.value,
+                }))
+              }
+            />
+          </div>
+          <div className="form-group">
+            <input
+              className="form-input"
+              type="password"
+              placeholder="Initial Password"
+              value={studentForm.password}
+              onChange={(e) =>
+                setStudentForm((s) => ({ ...s, password: e.target.value }))
+              }
+            />
+          </div>
           <button
+            className="btn btn-primary btn-block"
             disabled={isBusy}
             onClick={() =>
-              postJson("/api/admin/approve-clearance", clearanceForm, "approve-clearance", () =>
-                setClearanceForm({ student_id: "", tuition_paid: true, clearance_approved: true })
+              postJson(
+                '/api/admin/create-student',
+                studentForm,
+                'create-student',
+                () =>
+                  setStudentForm({
+                    full_name: '',
+                    student_id: '',
+                    email: '',
+                    program: '',
+                    enrollment_year: '',
+                    password: '',
+                  }),
               )
             }
           >
-            {loadingAction === "approve-clearance" ? "Updating..." : "Approve Clearance"}
+            {loadingAction === 'create-student' ? (
+              <>
+                <span className="spinner"></span> Creating...
+              </>
+            ) : (
+              'Create Student'
+            )}
           </button>
         </div>
-      </section>
 
-      <section style={{ border: "1px solid #ddd", borderRadius: 12, padding: "1rem" }}>
-        <h2 style={{ marginTop: 0 }}>View Student Academic Summary</h2>
-        <div style={{ display: "grid", gap: 8 }}>
+        {/* Create Course */}
+        <div className="card">
+          <div className="card-header">
+            <h3 className="card-title">📚 Create Course</h3>
+          </div>
+          <div className="form-group">
+            <input
+              className="form-input"
+              placeholder="Course Code"
+              value={courseForm.course_code}
+              onChange={(e) =>
+                setCourseForm((s) => ({ ...s, course_code: e.target.value }))
+              }
+            />
+          </div>
+          <div className="form-group">
+            <input
+              className="form-input"
+              placeholder="Course Name"
+              value={courseForm.course_name}
+              onChange={(e) =>
+                setCourseForm((s) => ({ ...s, course_name: e.target.value }))
+              }
+            />
+          </div>
+          <div className="form-group">
+            <input
+              className="form-input"
+              placeholder="Credit Hours"
+              value={courseForm.credit_hours}
+              onChange={(e) =>
+                setCourseForm((s) => ({ ...s, credit_hours: e.target.value }))
+              }
+            />
+          </div>
+          <button
+            className="btn btn-primary btn-block"
+            disabled={isBusy}
+            onClick={() =>
+              postJson(
+                '/api/admin/create-course',
+                courseForm,
+                'create-course',
+                () =>
+                  setCourseForm({
+                    course_code: '',
+                    course_name: '',
+                    credit_hours: '',
+                  }),
+              )
+            }
+          >
+            {loadingAction === 'create-course' ? (
+              <>
+                <span className="spinner"></span> Creating...
+              </>
+            ) : (
+              'Create Course'
+            )}
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-2 mb-2">
+        {/* Assign Grade */}
+        <div className="card">
+          <div className="card-header">
+            <h3 className="card-title">📝 Assign Grade</h3>
+          </div>
+          <div className="form-group">
+            <input
+              className="form-input"
+              placeholder="Student ID"
+              value={gradeForm.student_id}
+              onChange={(e) =>
+                setGradeForm((s) => ({ ...s, student_id: e.target.value }))
+              }
+            />
+          </div>
+          <div className="form-group">
+            <input
+              className="form-input"
+              placeholder="Course Code"
+              value={gradeForm.course_code}
+              onChange={(e) =>
+                setGradeForm((s) => ({ ...s, course_code: e.target.value }))
+              }
+            />
+          </div>
+          <div className="form-group">
+            <input
+              className="form-input"
+              placeholder="Grade (A, B+, etc.)"
+              value={gradeForm.grade}
+              onChange={(e) =>
+                setGradeForm((s) => ({ ...s, grade: e.target.value }))
+              }
+            />
+          </div>
+          <div className="form-group">
+            <input
+              className="form-input"
+              placeholder="Semester (Fall, Spring)"
+              value={gradeForm.semester}
+              onChange={(e) =>
+                setGradeForm((s) => ({ ...s, semester: e.target.value }))
+              }
+            />
+          </div>
+          <div className="form-group">
+            <input
+              className="form-input"
+              placeholder="Year"
+              value={gradeForm.year}
+              onChange={(e) =>
+                setGradeForm((s) => ({ ...s, year: e.target.value }))
+              }
+            />
+          </div>
+          <button
+            className="btn btn-primary btn-block"
+            disabled={isBusy}
+            onClick={() =>
+              postJson(
+                '/api/admin/assign-grade',
+                gradeForm,
+                'assign-grade',
+                () =>
+                  setGradeForm({
+                    student_id: '',
+                    course_code: '',
+                    grade: '',
+                    semester: '',
+                    year: '',
+                  }),
+              )
+            }
+          >
+            {loadingAction === 'assign-grade' ? (
+              <>
+                <span className="spinner"></span> Assigning...
+              </>
+            ) : (
+              'Assign Grade'
+            )}
+          </button>
+        </div>
+
+        {/* Add Activity */}
+        <div className="card">
+          <div className="card-header">
+            <h3 className="card-title">🏆 Add Activity</h3>
+          </div>
+          <div className="form-group">
+            <input
+              className="form-input"
+              placeholder="Student ID"
+              value={activityForm.student_id}
+              onChange={(e) =>
+                setActivityForm((s) => ({ ...s, student_id: e.target.value }))
+              }
+            />
+          </div>
+          <div className="form-group">
+            <input
+              className="form-input"
+              placeholder="Activity Name"
+              value={activityForm.activity_name}
+              onChange={(e) =>
+                setActivityForm((s) => ({
+                  ...s,
+                  activity_name: e.target.value,
+                }))
+              }
+            />
+          </div>
+          <div className="form-group">
+            <input
+              className="form-input"
+              placeholder="Description"
+              value={activityForm.description}
+              onChange={(e) =>
+                setActivityForm((s) => ({ ...s, description: e.target.value }))
+              }
+            />
+          </div>
+          <div className="form-group">
+            <input
+              className="form-input"
+              type="date"
+              placeholder="Participation Date"
+              value={activityForm.participation_date}
+              onChange={(e) =>
+                setActivityForm((s) => ({
+                  ...s,
+                  participation_date: e.target.value,
+                }))
+              }
+            />
+          </div>
+          <button
+            className="btn btn-primary btn-block"
+            disabled={isBusy}
+            onClick={() =>
+              postJson(
+                '/api/admin/add-activity',
+                activityForm,
+                'add-activity',
+                () =>
+                  setActivityForm({
+                    student_id: '',
+                    activity_name: '',
+                    description: '',
+                    participation_date: '',
+                  }),
+              )
+            }
+          >
+            {loadingAction === 'add-activity' ? (
+              <>
+                <span className="spinner"></span> Adding...
+              </>
+            ) : (
+              'Add Activity'
+            )}
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-2 mb-2">
+        {/* Update Student Status */}
+        <div className="card">
+          <div className="card-header">
+            <h3 className="card-title">📊 Update Status</h3>
+          </div>
+          <div className="form-group">
+            <input
+              className="form-input"
+              placeholder="Student ID"
+              value={statusForm.student_id}
+              onChange={(e) =>
+                setStatusForm((s) => ({ ...s, student_id: e.target.value }))
+              }
+            />
+          </div>
+          <div className="form-group">
+            <select
+              className="form-select"
+              value={statusForm.status}
+              onChange={(e) =>
+                setStatusForm((s) => ({ ...s, status: e.target.value }))
+              }
+            >
+              <option value="active">Active</option>
+              <option value="graduated">Graduated</option>
+            </select>
+          </div>
+          <div className="form-group">
+            <input
+              className="form-input"
+              placeholder="Graduation Year (if graduated)"
+              value={statusForm.graduation_year}
+              onChange={(e) =>
+                setStatusForm((s) => ({
+                  ...s,
+                  graduation_year: e.target.value,
+                }))
+              }
+              disabled={statusForm.status !== 'graduated'}
+            />
+          </div>
+          <button
+            className="btn btn-primary btn-block"
+            disabled={isBusy}
+            onClick={() =>
+              postJson(
+                '/api/admin/update-student-status',
+                statusForm,
+                'update-status',
+                () =>
+                  setStatusForm({
+                    student_id: '',
+                    status: 'active',
+                    graduation_year: '',
+                  }),
+              )
+            }
+          >
+            {loadingAction === 'update-status' ? (
+              <>
+                <span className="spinner"></span> Updating...
+              </>
+            ) : (
+              'Update Status'
+            )}
+          </button>
+        </div>
+
+        {/* Approve Clearance */}
+        <div className="card">
+          <div className="card-header">
+            <h3 className="card-title">💰 Approve Clearance</h3>
+          </div>
+          <div className="form-group">
+            <input
+              className="form-input"
+              placeholder="Student ID"
+              value={clearanceForm.student_id}
+              onChange={(e) =>
+                setClearanceForm((s) => ({ ...s, student_id: e.target.value }))
+              }
+            />
+          </div>
+          <div
+            className="form-group flex gap-2"
+            style={{ alignItems: 'center' }}
+          >
+            <label
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+            >
+              <input
+                type="checkbox"
+                checked={clearanceForm.tuition_paid}
+                onChange={(e) =>
+                  setClearanceForm((s) => ({
+                    ...s,
+                    tuition_paid: e.target.checked,
+                  }))
+                }
+              />
+              Tuition Paid
+            </label>
+            <label
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+            >
+              <input
+                type="checkbox"
+                checked={clearanceForm.clearance_approved}
+                onChange={(e) =>
+                  setClearanceForm((s) => ({
+                    ...s,
+                    clearance_approved: e.target.checked,
+                  }))
+                }
+              />
+              Clearance Approved
+            </label>
+          </div>
+          <button
+            className="btn btn-success btn-block"
+            disabled={isBusy}
+            onClick={() =>
+              postJson(
+                '/api/admin/approve-clearance',
+                clearanceForm,
+                'approve-clearance',
+                () =>
+                  setClearanceForm({
+                    student_id: '',
+                    tuition_paid: true,
+                    clearance_approved: true,
+                  }),
+              )
+            }
+          >
+            {loadingAction === 'approve-clearance' ? (
+              <>
+                <span className="spinner"></span> Approving...
+              </>
+            ) : (
+              'Approve Clearance'
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* View Student Summary */}
+      <div className="card">
+        <div className="card-header">
+          <h3 className="card-title">🔍 View Student Summary</h3>
+        </div>
+        <div className="flex gap-2">
           <input
-            placeholder="Student ID"
+            className="form-input"
+            placeholder="Enter Student ID"
             value={summaryStudentId}
             onChange={(e) => setSummaryStudentId(e.target.value)}
+            style={{ flex: 1 }}
           />
-          <button disabled={isBusy} onClick={fetchSummary}>
-            {loadingAction === "summary" ? "Loading..." : "View Summary"}
+          <button
+            className="btn btn-primary"
+            onClick={fetchSummary}
+            disabled={loadingAction === 'summary'}
+          >
+            {loadingAction === 'summary' ? (
+              <>
+                <span className="spinner"></span> Loading...
+              </>
+            ) : (
+              'View Summary'
+            )}
           </button>
         </div>
-        {summary ? (
-          <div style={{ marginTop: 12, borderTop: "1px solid #eee", paddingTop: 10 }}>
-            <p>
-              <strong>Name:</strong> {summary.student.fullName}
-            </p>
-            <p>
-              <strong>Program:</strong> {summary.student.program}
-            </p>
-            <p>
-              <strong>CGPA:</strong> {summary.cgpa}
-            </p>
-            <p>
-              <strong>Financial Clearance:</strong>{" "}
-              {summary.financial.clearance_approved ? "Approved" : "Pending"}
-            </p>
-            <p>
-              <strong>Certificate:</strong>{" "}
-              {summary.certificate.issued ? summary.certificate.status : "Not issued"}
-            </p>
+
+        {summary && (
+          <div
+            className="mt-2"
+            style={{
+              background: 'var(--background)',
+              borderRadius: 'var(--radius)',
+              padding: '1rem',
+            }}
+          >
+            <div className="grid grid-2 gap-2">
+              <div>
+                <div
+                  style={{
+                    color: 'var(--text-secondary)',
+                    fontSize: '0.75rem',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  Name
+                </div>
+                <div style={{ fontWeight: 500 }}>
+                  {summary.student.fullName}
+                </div>
+              </div>
+              <div>
+                <div
+                  style={{
+                    color: 'var(--text-secondary)',
+                    fontSize: '0.75rem',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  Program
+                </div>
+                <div style={{ fontWeight: 500 }}>{summary.student.program}</div>
+              </div>
+              <div>
+                <div
+                  style={{
+                    color: 'var(--text-secondary)',
+                    fontSize: '0.75rem',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  CGPA
+                </div>
+                <div style={{ fontWeight: 500 }}>{summary.cgpa || 'N/A'}</div>
+              </div>
+              <div>
+                <div
+                  style={{
+                    color: 'var(--text-secondary)',
+                    fontSize: '0.75rem',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  Status
+                </div>
+                <span
+                  className={`badge ${summary.certificate?.issued ? 'badge-success' : 'badge-info'}`}
+                >
+                  {summary.certificate?.issued
+                    ? summary.certificate.status
+                    : 'Not issued'}
+                </span>
+              </div>
+            </div>
           </div>
-        ) : null}
-      </section>
-
-      {error ? (
-        <section style={{ border: "1px solid #ffc9c9", borderRadius: 10, padding: "0.9rem" }}>
-          <p style={{ color: "crimson", margin: 0 }}>
-            <strong>Error:</strong> {error}
-          </p>
-        </section>
-      ) : null}
-
-      {successMessage ? (
-        <section style={{ border: "1px solid #b7e4c7", borderRadius: 10, padding: "0.9rem" }}>
-          <p style={{ color: "green", margin: 0 }}>{successMessage}</p>
-        </section>
-      ) : null}
-
-      {result ? (
-        <section style={{ border: "1px solid #ddd", borderRadius: 12, padding: "1rem" }}>
-          <h3 style={{ marginTop: 0 }}>Operation Result</h3>
-          <div style={{ display: "grid", gap: "0.4rem" }}>
-            {result.studentId ? (
-              <p>
-                <strong>Student ID:</strong> {result.studentId}
-              </p>
-            ) : null}
-            {result.cgpa != null ? (
-              <p>
-                <strong>CGPA:</strong> {result.cgpa}
-              </p>
-            ) : null}
-            {result.documentHash ? (
-              <p>
-                <strong>Document Hash:</strong> {result.documentHash}
-              </p>
-            ) : null}
-            {result.blockchainTxHash ? (
-              <p>
-                <strong>Blockchain Tx:</strong> {result.blockchainTxHash}
-              </p>
-            ) : null}
-            {result.pdfPath ? (
-              <p>
-                <a href={result.pdfPath} target="_blank" rel="noreferrer">
-                  Download Generated Certificate PDF
-                </a>
-              </p>
-            ) : null}
-          </div>
-        </section>
-      ) : null}
-    </main>
+        )}
+      </div>
+    </div>
   );
 }

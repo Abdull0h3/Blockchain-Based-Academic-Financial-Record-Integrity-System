@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useRef, useState } from "react";
+import { useRef, useState } from 'react';
 
 export default function VerifyPage() {
-  const [studentId, setStudentId] = useState("");
+  const [studentId, setStudentId] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [record, setRecord] = useState(null);
   const [scannerActive, setScannerActive] = useState(false);
   const videoRef = useRef(null);
@@ -15,22 +15,22 @@ export default function VerifyPage() {
 
   async function verifyById(id) {
     setLoading(true);
-    setError("");
+    setError('');
     setRecord(null);
 
     try {
-      const response = await fetch("/api/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ studentId: id }),
       });
       const payload = await response.json();
       if (!response.ok) {
-        throw new Error(payload.error || "Verification failed");
+        throw new Error(payload.error || 'Verification failed');
       }
       setRecord(payload);
     } catch (requestError) {
-      setError(requestError.message || "Unexpected error occurred");
+      setError(requestError.message || 'Unexpected error occurred');
     } finally {
       setLoading(false);
     }
@@ -40,7 +40,7 @@ export default function VerifyPage() {
     event.preventDefault();
     const id = studentId.trim();
     if (!id) {
-      setError("Please enter student ID");
+      setError('Please enter student ID');
       return;
     }
     await verifyById(id);
@@ -60,13 +60,13 @@ export default function VerifyPage() {
 
   async function startScanner() {
     try {
-      if (!("BarcodeDetector" in window)) {
-        throw new Error("QR scanner is not supported in this browser");
+      if (!('BarcodeDetector' in window)) {
+        throw new Error('QR scanner is not supported in this browser');
       }
 
-      const detector = new window.BarcodeDetector({ formats: ["qr_code"] });
+      const detector = new window.BarcodeDetector({ formats: ['qr_code'] });
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" },
+        video: { facingMode: 'environment' },
       });
       streamRef.current = stream;
       setScannerActive(true);
@@ -83,7 +83,7 @@ export default function VerifyPage() {
         try {
           const codes = await detector.detect(videoRef.current);
           if (codes.length > 0) {
-            const rawValue = codes[0].rawValue || "";
+            const rawValue = codes[0].rawValue || '';
             const match = rawValue.match(/\/verify\/([^/?#]+)/);
             const extractedId = match ? decodeURIComponent(match[1]) : rawValue;
             setStudentId(extractedId);
@@ -99,7 +99,7 @@ export default function VerifyPage() {
 
       rafRef.current = requestAnimationFrame(scanLoop);
     } catch (scannerError) {
-      setError(scannerError.message || "Failed to start scanner");
+      setError(scannerError.message || 'Failed to start scanner');
       stopScanner();
     }
   }
@@ -109,51 +109,146 @@ export default function VerifyPage() {
     : null;
 
   return (
-    <main style={{ maxWidth: 820, margin: "0 auto", display: "grid", gap: 12 }}>
-      <h1>Employer Verification</h1>
-      <form onSubmit={handleSubmit} style={{ display: "grid", gap: 8 }}>
-        <input
-          value={studentId}
-          onChange={(e) => setStudentId(e.target.value)}
-          placeholder="Enter Student ID"
-          style={{ padding: "0.6rem" }}
-        />
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <button type="submit" disabled={loading}>
-            {loading ? "Verifying..." : "Verify"}
-          </button>
-          {!scannerActive ? (
-            <button type="button" onClick={startScanner}>
-              Scan QR
+    <div className="main-container">
+      <div className="page-header" style={{ textAlign: 'center' }}>
+        <h1 className="page-title">Certificate Verification</h1>
+        <p className="page-subtitle">
+          Verify academic credentials using student ID or QR code
+        </p>
+      </div>
+
+      <div className="card" style={{ maxWidth: 600, margin: '0 auto' }}>
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label className="form-label">Student ID</label>
+            <input
+              className="form-input"
+              value={studentId}
+              onChange={(e) => setStudentId(e.target.value)}
+              placeholder="Enter Student ID (e.g., STU-1001)"
+            />
+          </div>
+
+          <div className="flex gap-2">
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={loading}
+              style={{ flex: 1 }}
+            >
+              {loading ? (
+                <>
+                  <span className="spinner"></span>
+                  Verifying...
+                </>
+              ) : (
+                '🔍 Verify Certificate'
+              )}
             </button>
-          ) : (
-            <button type="button" onClick={stopScanner}>
-              Stop Scanner
-            </button>
-          )}
+            {!scannerActive ? (
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={startScanner}
+              >
+                📷 Scan QR
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="btn btn-danger"
+                onClick={stopScanner}
+              >
+                Stop Scanner
+              </button>
+            )}
+          </div>
+        </form>
+
+        {scannerActive && (
+          <div style={{ marginTop: '1rem' }}>
+            <video
+              ref={videoRef}
+              style={{
+                width: '100%',
+                borderRadius: 'var(--radius)',
+                border: '2px solid var(--border)',
+              }}
+              muted
+            />
+          </div>
+        )}
+
+        {error && <div className="alert alert-error mt-2">{error}</div>}
+      </div>
+
+      {record && (
+        <div
+          className="verify-result mt-2"
+          style={{ maxWidth: 600, margin: '1.5rem auto' }}
+        >
+          <div
+            className={`verify-header ${record.isRevoked || !record.integrityValid ? 'invalid' : 'valid'}`}
+          >
+            <div style={{ fontSize: '2rem' }}>
+              {record.isRevoked || !record.integrityValid ? '❌' : '✓'}
+            </div>
+            <div>
+              <div style={{ fontSize: '1.25rem', fontWeight: 700 }}>
+                {record.isRevoked
+                  ? 'Certificate Revoked'
+                  : !record.integrityValid
+                    ? 'Integrity Check Failed'
+                    : 'Certificate Valid'}
+              </div>
+              <div style={{ opacity: 0.9, fontSize: '0.875rem' }}>
+                {record.integrityValid
+                  ? 'Document hash matches blockchain record'
+                  : 'Document may have been tampered with'}
+              </div>
+            </div>
+          </div>
+
+          <div className="verify-body">
+            <div className="verify-field">
+              <span className="label">Full Name</span>
+              <span className="value">{record.fullName || 'N/A'}</span>
+            </div>
+            <div className="verify-field">
+              <span className="label">Program</span>
+              <span className="value">{record.program || 'N/A'}</span>
+            </div>
+            <div className="verify-field">
+              <span className="label">CGPA</span>
+              <span className="value">{record.cgpa ?? 'N/A'}</span>
+            </div>
+            <div className="verify-field">
+              <span className="label">Issuer</span>
+              <span className="value">{record.issuer}</span>
+            </div>
+            <div className="verify-field">
+              <span className="label">Issue Date</span>
+              <span className="value">{issueDate || 'N/A'}</span>
+            </div>
+            <div className="verify-field">
+              <span className="label">Status</span>
+              <span
+                className={`badge ${record.isRevoked ? 'badge-danger' : 'badge-success'}`}
+              >
+                {record.isRevoked ? 'Revoked' : 'Valid'}
+              </span>
+            </div>
+            <div className="verify-field">
+              <span className="label">Blockchain Verified</span>
+              <span
+                className={`badge ${record.integrityValid ? 'badge-success' : 'badge-danger'}`}
+              >
+                {record.integrityValid ? '✓ Verified' : '✗ Failed'}
+              </span>
+            </div>
+          </div>
         </div>
-      </form>
-
-      {scannerActive ? (
-        <video ref={videoRef} style={{ width: "100%", maxWidth: 420, borderRadius: 8 }} muted />
-      ) : null}
-
-      {error ? <p style={{ color: "crimson" }}>{error}</p> : null}
-
-      {record ? (
-        <section style={{ border: "1px solid #ddd", borderRadius: 10, padding: "1rem" }}>
-          <p><strong>Name:</strong> {record.fullName || "N/A"}</p>
-          <p><strong>Program:</strong> {record.program || "N/A"}</p>
-          <p><strong>CGPA:</strong> {record.cgpa ?? "N/A"}</p>
-          <p><strong>Issuer:</strong> {record.issuer}</p>
-          <p><strong>Issue Date:</strong> {issueDate || "N/A"}</p>
-          <p><strong>Status:</strong> {record.isRevoked ? "Revoked" : "Valid"}</p>
-          <p>
-            <strong>Integrity Check:</strong>{" "}
-            {record.integrityValid ? "Valid (hash matched)" : "Tampered (hash mismatch)"}
-          </p>
-        </section>
-      ) : null}
-    </main>
+      )}
+    </div>
   );
 }
