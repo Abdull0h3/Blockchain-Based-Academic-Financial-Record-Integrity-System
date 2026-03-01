@@ -1,10 +1,20 @@
 import { NextResponse } from "next/server";
 import { executeQuery } from "../../../lib/db";
+import { requireAdmin } from "../../../lib/auth";
 
 export const runtime = "nodejs";
 
 export async function POST(request) {
   try {
+    // Check admin authentication
+    const auth = await requireAdmin();
+    if (!auth.authorized) {
+      return NextResponse.json(
+        { success: false, error: auth.error },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const { student_id, course_code, grade, semester, year } = body;
 

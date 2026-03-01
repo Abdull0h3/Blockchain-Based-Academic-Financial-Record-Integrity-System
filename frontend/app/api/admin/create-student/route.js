@@ -1,16 +1,26 @@
 import { NextResponse } from "next/server";
 import { executeQuery } from "../../../lib/db";
+import { requireAdmin, hashPassword } from "../../../lib/auth";
 
 export const runtime = "nodejs";
 
 export async function POST(request) {
   try {
-    const body = await request.json();
-    const { full_name, student_id, email, program, enrollment_year } = body;
-
-    if (!full_name || !student_id || !program || !enrollment_year) {
+    // Check admin authentication
+    const auth = await requireAdmin();
+    if (!auth.authorized) {
       return NextResponse.json(
-        { success: false, error: "full_name, student_id, program, enrollment_year are required" },
+        { success: false, error: auth.error },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json();
+    const { full_name, student_id, email, program, enrollment_year, password } = body;
+
+    if (!full_name || !student_id || !program || !enrollment_year || !password) {
+      return NextResponse.json(
+        { success: false, error: "full_name, student_id, program, enrollment_year, and password are required" },
         { status: 400 }
       );
     }
@@ -25,13 +35,16 @@ export async function POST(request) {
       );
     }
 
+    // Hash the password
+    const passwordHash = await hashPassword(password);
+
     await executeQuery(
       `
         INSERT INTO students (
-          full_name, student_id, email, program, enrollment_year
-        ) VALUES (?, ?, ?, ?, ?)
+          full_name, student_id, email, program, enrollment_year, password_hash
+        ) VALUES (?, ?, ?, ?, ?, ?)
       `,
-      [String(full_name).trim(), String(student_id).trim(), email || null, String(program).trim(), Number(enrollment_year)]
+      [String(full_name).trim(), String(student_id).trim(), email || null, String(program).trim(), Number(enrollment_year), passwordHash]
     );
 
     return NextResponse.json({ success: true, message: "Student created successfully" }, { status: 201 });

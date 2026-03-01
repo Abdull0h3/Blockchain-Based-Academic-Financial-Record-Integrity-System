@@ -1,25 +1,49 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function StudentPage() {
-  const [studentId, setStudentId] = useState("");
+  const router = useRouter();
+  const [user, setUser] = useState(null);
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [summary, setSummary] = useState(null);
 
-  async function fetchSummary() {
-    const id = studentId.trim();
-    if (!id) {
-      setError("Please enter student ID");
-      return;
+  // Check authentication on mount
+  useEffect(() => {
+    async function checkAuth() {
+      try {
+        const response = await fetch("/api/auth/me");
+        const data = await response.json();
+        if (data.authenticated && data.user?.role === "student") {
+          setUser(data.user);
+        } else {
+          router.push("/student/login");
+        }
+      } catch {
+        router.push("/student/login");
+      } finally {
+        setCheckingAuth(false);
+      }
     }
+    checkAuth();
+  }, [router]);
 
+  // Fetch summary when user is authenticated
+  useEffect(() => {
+    if (user?.studentId) {
+      fetchSummary(user.studentId);
+    }
+  }, [user]);
+
+  async function fetchSummary(studentId) {
     setLoading(true);
     setError("");
     setSummary(null);
     try {
-      const response = await fetch(`/api/admin/student-summary?studentId=${encodeURIComponent(id)}`);
+      const response = await fetch(`/api/admin/student-summary?studentId=${encodeURIComponent(studentId)}`);
       const payload = await response.json();
       if (!response.ok) {
         throw new Error(payload.error || "Failed to fetch student summary");
@@ -32,22 +56,36 @@ export default function StudentPage() {
     }
   }
 
+  async function handleLogout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/student/login");
+  }
+
+  // Show loading while checking authentication
+  if (checkingAuth) {
+    return (
+      <main style={{ maxWidth: 900, margin: "2rem auto", textAlign: "center" }}>
+        <p>Loading...</p>
+      </main>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
+
   return (
     <main style={{ maxWidth: 900, margin: "0 auto", display: "grid", gap: 12 }}>
-      <h1>Student Academic Portal</h1>
-      <div style={{ display: "flex", gap: 8 }}>
-        <input
-          value={studentId}
-          onChange={(e) => setStudentId(e.target.value)}
-          placeholder="Enter Student ID"
-          style={{ flex: 1, padding: "0.6rem" }}
-        />
-        <button onClick={fetchSummary} disabled={loading}>
-          {loading ? "Loading..." : "View Summary"}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <h1>Student Academic Portal</h1>
+        <button onClick={handleLogout} style={{ padding: "0.5rem 1rem" }}>
+          Logout
         </button>
       </div>
+      <p>Welcome, <strong>{user.fullName}</strong></p>
 
-      {error ? <p style={{ color: "crimson" }}>{error}</p> : null}
+      {loading && <p>Loading your academic summary...</p>}
+      {error && <p style={{ color: "crimson" }}>{error}</p>}
 
       {summary ? (
         <section style={{ border: "1px solid #ddd", borderRadius: 10, padding: "1rem" }}>

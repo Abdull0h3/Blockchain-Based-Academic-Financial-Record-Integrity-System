@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getPool } from "../../../lib/db";
 import { contract, ensureContractIsDeployed } from "../../../lib/blockchain";
+import { requireAdmin } from "../../../lib/auth";
 
 export const runtime = "nodejs";
 
@@ -13,6 +14,15 @@ export async function POST(request) {
   let connection;
 
   try {
+    // Check admin authentication
+    const auth = await requireAdmin();
+    if (!auth.authorized) {
+      return NextResponse.json(
+        { success: false, error: auth.error },
+        { status: 401 }
+      );
+    }
+
     await ensureContractIsDeployed();
     const body = await request.json();
     const { studentId } = body;

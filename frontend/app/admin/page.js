@@ -1,8 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function AdminDashboardPage() {
+  const router = useRouter();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const [certificateStudentId, setCertificateStudentId] = useState("");
   const [loadingAction, setLoadingAction] = useState("");
   const [error, setError] = useState("");
@@ -16,6 +20,7 @@ export default function AdminDashboardPage() {
     email: "",
     program: "",
     enrollment_year: "",
+    password: "",
   });
   const [courseForm, setCourseForm] = useState({
     course_code: "",
@@ -46,6 +51,31 @@ export default function AdminDashboardPage() {
     graduation_year: "",
   });
   const [summaryStudentId, setSummaryStudentId] = useState("");
+
+  // Check authentication on mount
+  useEffect(() => {
+    async function checkAuth() {
+      try {
+        const response = await fetch("/api/auth/me");
+        const data = await response.json();
+        if (data.authenticated && data.user?.role === "admin") {
+          setIsAuthenticated(true);
+        } else {
+          router.push("/admin/login");
+        }
+      } catch {
+        router.push("/admin/login");
+      } finally {
+        setCheckingAuth(false);
+      }
+    }
+    checkAuth();
+  }, [router]);
+
+  async function handleLogout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/admin/login");
+  }
 
   async function postJson(endpoint, body, actionName, resetFn) {
     setError("");
@@ -119,6 +149,20 @@ export default function AdminDashboardPage() {
   const isRevokeLoading = loadingAction === "revoke";
   const isBusy = Boolean(loadingAction);
 
+  // Show loading while checking authentication
+  if (checkingAuth) {
+    return (
+      <main style={{ maxWidth: 900, margin: "2rem auto", textAlign: "center" }}>
+        <p>Loading...</p>
+      </main>
+    );
+  }
+
+  // This shouldn't render if not authenticated (redirected), but safety check
+  if (!isAuthenticated) {
+    return null;
+  }
+
   return (
     <main
       style={{
@@ -130,7 +174,12 @@ export default function AdminDashboardPage() {
         gap: "1rem",
       }}
     >
-      <h1 style={{ marginBottom: 0 }}>Academic Record Admin Dashboard</h1>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <h1 style={{ marginBottom: 0 }}>Academic Record Admin Dashboard</h1>
+        <button onClick={handleLogout} style={{ padding: "0.5rem 1rem" }}>
+          Logout
+        </button>
+      </div>
       <p style={{ marginTop: 0 }}>
         Admin actions are executed via backend API routes only. This keeps private keys in the
         backend and enforces secure DApp architecture.
@@ -204,11 +253,17 @@ export default function AdminDashboardPage() {
             value={studentForm.enrollment_year}
             onChange={(e) => setStudentForm((s) => ({ ...s, enrollment_year: e.target.value }))}
           />
+          <input
+            type="password"
+            placeholder="Initial Password"
+            value={studentForm.password}
+            onChange={(e) => setStudentForm((s) => ({ ...s, password: e.target.value }))}
+          />
           <button
             disabled={isBusy}
             onClick={() =>
               postJson("/api/admin/create-student", studentForm, "create-student", () =>
-                setStudentForm({ full_name: "", student_id: "", email: "", program: "", enrollment_year: "" })
+                setStudentForm({ full_name: "", student_id: "", email: "", program: "", enrollment_year: "", password: "" })
               )
             }
           >
