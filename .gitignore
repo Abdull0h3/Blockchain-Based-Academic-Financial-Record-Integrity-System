@@ -4,10 +4,6 @@ node_modules/
 # next build output
 .next/
 
-# env files (VERY IMPORTANT)
-.env.local
-.env
-
 # hardhat
 hardhat/artifacts/
 hardhat/cache/
