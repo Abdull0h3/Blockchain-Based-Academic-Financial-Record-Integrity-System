@@ -72,6 +72,22 @@ export default function AdminDashboardPage() {
     checkAuth();
   }, [router]);
 
+  useEffect(() => {
+    if (!error) {
+      return;
+    }
+    const timer = setTimeout(() => setError(''), 4500);
+    return () => clearTimeout(timer);
+  }, [error]);
+
+  useEffect(() => {
+    if (!successMessage) {
+      return;
+    }
+    const timer = setTimeout(() => setSuccessMessage(''), 3500);
+    return () => clearTimeout(timer);
+  }, [successMessage]);
+
   async function handleLogout() {
     await fetch('/api/auth/logout', { method: 'POST' });
     router.push('/admin/login');
@@ -96,6 +112,17 @@ export default function AdminDashboardPage() {
       setSuccessMessage(payload.message || 'Operation completed');
       if (payload.blockchainTxHash || payload.pdfPath) {
         setResult(payload);
+      }
+      if (actionName === 'issue' && payload.pdfPath) {
+        const downloadLink = document.createElement('a');
+        downloadLink.href = payload.pdfPath;
+        downloadLink.setAttribute(
+          'download',
+          payload.pdfPath.split('/').pop() || 'certificate.pdf',
+        );
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
       }
       if (resetFn) {
         resetFn();
@@ -188,9 +215,13 @@ export default function AdminDashboardPage() {
         </button>
       </div>
 
-      {error && <div className="alert alert-error">{error}</div>}
-      {successMessage && (
-        <div className="alert alert-success">{successMessage}</div>
+      {(error || successMessage) && (
+        <div className="toast-container">
+          {error && <div className="alert alert-error toast">{error}</div>}
+          {successMessage && (
+            <div className="alert alert-success toast">{successMessage}</div>
+          )}
+        </div>
       )}
 
       {/* Certificate Operations */}
@@ -245,7 +276,12 @@ export default function AdminDashboardPage() {
               <p style={{ margin: 0 }}>TX: {result.blockchainTxHash}</p>
             )}
             {result.pdfPath && (
-              <p style={{ margin: '0.25rem 0 0 0' }}>PDF: {result.pdfPath}</p>
+              <p style={{ margin: '0.25rem 0 0 0' }}>
+                PDF:{' '}
+                <a href={result.pdfPath} download>
+                  Download certificate
+                </a>
+              </p>
             )}
           </div>
         )}
@@ -820,6 +856,19 @@ export default function AdminDashboardPage() {
                     ? summary.certificate.status
                     : 'Not issued'}
                 </span>
+                {summary.certificate?.issued &&
+                  summary.certificate?.status === 'Valid' &&
+                  summary.certificate?.pdfPath && (
+                    <div style={{ marginTop: '0.75rem' }}>
+                      <a
+                        href={summary.certificate.pdfPath}
+                        download
+                        className="btn btn-success"
+                      >
+                        Download Certificate (PDF)
+                      </a>
+                    </div>
+                  )}
               </div>
             </div>
           </div>

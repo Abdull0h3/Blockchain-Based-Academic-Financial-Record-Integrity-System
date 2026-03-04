@@ -41,6 +41,11 @@ function calculateCgpa(rows) {
   return Number((weighted / totalCredits).toFixed(2));
 }
 
+function toCertificatePdfPath(studentId) {
+  const safeStudentId = String(studentId || "").replace(/[^a-zA-Z0-9_-]/g, "_");
+  return `/uploads/certificates/${safeStudentId}.pdf`;
+}
+
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -146,6 +151,9 @@ export async function GET(request) {
                 contractAddress: certificate.contract_address,
                 status: certificate.is_revoked ? "Revoked" : "Valid",
                 issuedAt: certificate.issued_at,
+                pdfPath: !certificate.is_revoked
+                  ? toCertificatePdfPath(student.student_id)
+                  : null,
               }
             : { issued: false },
         },

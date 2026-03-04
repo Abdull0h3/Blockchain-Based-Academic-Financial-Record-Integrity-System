@@ -36,6 +36,14 @@ export default function StudentPage() {
     }
   }, [user]);
 
+  useEffect(() => {
+    if (!error) {
+      return;
+    }
+    const timer = setTimeout(() => setError(''), 4500);
+    return () => clearTimeout(timer);
+  }, [error]);
+
   async function fetchSummary(studentId) {
     setLoading(true);
     setError('');
@@ -106,7 +114,11 @@ export default function StudentPage() {
         </div>
       )}
 
-      {error && <div className="alert alert-error">{error}</div>}
+      {error && (
+        <div className="toast-container">
+          <div className="alert alert-error toast">{error}</div>
+        </div>
+      )}
 
       {summary && (
         <>
@@ -170,6 +182,19 @@ export default function StudentPage() {
                   ? 'Your certificate has been issued and recorded on blockchain.'
                   : 'Certificate will be issued after graduation and clearance approval.'}
               </p>
+              {summary.certificate?.issued &&
+                summary.certificate?.status === 'Valid' &&
+                summary.certificate?.pdfPath && (
+                  <div style={{ marginTop: '0.75rem' }}>
+                    <a
+                      href={summary.certificate.pdfPath}
+                      download
+                      className="btn btn-success"
+                    >
+                      Download Certificate (PDF)
+                    </a>
+                  </div>
+                )}
             </div>
           </div>
 
