@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createHash } from "crypto";
 import fs from "fs";
 import path from "path";
-import PDFDocument from "pdfkit";
+// PDFDocument will be imported dynamically to avoid bundling issues with fontkit/@swc/helpers
 import QRCode from "qrcode";
 import { getPool } from "../../../lib/db";
 import { contract, ensureContractIsDeployed } from "../../../lib/blockchain";
@@ -77,6 +77,9 @@ function resolvePdfFontPath() {
 }
 
 async function writePdf({ studentId, fullName, program, cgpa, graduationYear }) {
+  // Dynamic import to avoid bundling issues with fontkit/@swc/helpers
+  const { default: PDFDocument } = await import("pdfkit");
+  
   const safeStudentId = String(studentId).replace(/[^a-zA-Z0-9_-]/g, "_");
   const certificatesDir = path.join(process.cwd(), "public", "uploads", "certificates");
   const fileName = `${safeStudentId}.pdf`;

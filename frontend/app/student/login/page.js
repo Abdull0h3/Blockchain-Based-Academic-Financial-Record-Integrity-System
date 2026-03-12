@@ -60,6 +60,7 @@ export default function StudentLoginPage() {
               onChange={(e) => setStudentId(e.target.value)}
               placeholder="e.g. STU-1001"
               required
+              suppressHydrationWarning
             />
           </div>
 
@@ -75,6 +76,7 @@ export default function StudentLoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter password"
               required
+              suppressHydrationWarning
             />
           </div>
 
@@ -84,6 +86,7 @@ export default function StudentLoginPage() {
             type="submit"
             className="btn btn-primary btn-block btn-lg"
             disabled={loading}
+            suppressHydrationWarning
           >
             {loading ? (
               <>

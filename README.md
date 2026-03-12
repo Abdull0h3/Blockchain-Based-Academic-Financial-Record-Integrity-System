@@ -1,6 +1,43 @@
 # University Academic Record DApp
 
+## System Features
+
+- **Blockchain-backed certificate issuance**
+  - Academic certificates are anchored on-chain using the `AcademicRecords` smart contract.
+  - For each eligible student, the system stores a `documentHash`, issuer, timestamp, and validity flag on the blockchain.
+
+- **End-to-end integrity verification**
+  - At issuance, a canonical academic string is built from MySQL data (student ID, name, program, CGPA, graduation year).
+  - A SHA-256 hash of this canonical string is stored both in the `certificates` table and on-chain as `documentHash`.
+  - At verification, the backend recomputes the hash from the DB snapshot and checks it against the on-chain hash.
+  - **If hashes differ, integrity fails**, indicating possible tampering with off-chain records.
+
+- **Admin-controlled write access (authorization via digital signatures)**
+  - Only the on-chain `admin` account can issue or revoke certificates (`issueRecord`, `revokeRecord`).
+  - This relies on Ethereum transaction signatures: `msg.sender` must equal the stored `admin` address.
+
+- **Revocation without history loss**
+  - Certificates can be revoked on-chain by flipping `isValid` to `false` instead of deleting data.
+  - The database also tracks `is_revoked`, `revoked_at`, and `revoke_tx_hash` for auditability.
+  - Verification shows both validity and revocation status.
+
+- **Student ID–based public verification**
+  - Anyone can verify a certificate using only the student ID via `POST /api/verify` or the `/verify` page.
+  - The QR flow is optional and currently disabled in the UI; all core verification logic works with typed student IDs.
+
+- **Integrated academic, financial, and activity records**
+  - Eligibility for certificate issuance is enforced server-side:
+    - student must be in `graduated` status,
+    - financial clearance must be approved,
+    - CGPA is computed from `student_courses` and `courses`.
+  - This ensures only academically and financially eligible students receive certificates.
+
+- **Separation of concerns and security boundaries**
+  - The frontend never accesses the blockchain, private keys, or database directly.
+  - All sensitive operations (DB reads/writes, smart contract calls) are performed via Next.js API routes.
+  - This design centralizes security checks and simplifies auditing.
 Full-stack academic certificate system using:
+
 
 - Hardhat + Solidity (`AcademicRecords` contract)
 - Next.js App Router (frontend + backend API routes)
@@ -119,6 +156,11 @@ CREATE TABLE certificates (
 -- Recommended uniqueness for grade entries:
 ALTER TABLE student_courses
 ADD UNIQUE KEY uq_student_course_term (student_id, course_code, semester, year);
+
+
+-- Add password column to students table
+ALTER TABLE students 
+ADD COLUMN password_hash VARCHAR(255) NULL
 ```
 
 ## 4) Run local blockchain + deploy contract
@@ -163,6 +205,15 @@ Notes:
 - Use Hardhat Account #0 private key if that account deployed the contract.
 - If you restart Hardhat node, you must redeploy and update `CONTRACT_ADDRESS`.
 
+### Admin portal credentials
+
+In `frontend/.env.local`, configure the admin login used at `/admin/login`:
+
+# Admin portal credentials
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=admin123  
+
+
 ## 6) Run frontend
 
 ```bash
@@ -200,7 +251,10 @@ Open:
 
 ## 8) Test flow (recommended)
 
-1. Create student in `/admin`
+1. Create student in `/admin`(After login 
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=admin123)
+
 2. Create one or more courses
 3. Assign grades to student
 4. Add activity

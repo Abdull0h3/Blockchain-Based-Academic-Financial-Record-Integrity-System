@@ -3,8 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "next dev --webpack",
+    "dev:turbo": "next dev --turbopack",
+    "build": "next build --webpack",
+    "build:turbo": "next build --turbopack",
     "start": "next start",
     "lint": "next lint"
   },
@@ -13,14 +15,14 @@
     "ethers": "^6.13.0",
     "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.11.0",
-    "next": "^14.2.0",
+    "next": "^16.1.6",
     "pdfkit": "^0.15.0",
     "qrcode": "^1.5.4",
     "react": "^18.3.0",
     "react-dom": "^18.3.0"
   },
   "devDependencies": {
-    "eslint": "^8.57.0",
-    "eslint-config-next": "^14.2.0"
+    "eslint": "^9.0.0",
+    "eslint-config-next": "^16.1.6"
   }
 }

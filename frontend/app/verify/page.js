@@ -7,11 +7,12 @@ export default function VerifyPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [record, setRecord] = useState(null);
-  const [scannerActive, setScannerActive] = useState(false);
-  const videoRef = useRef(null);
-  const streamRef = useRef(null);
-  const rafRef = useRef(null);
-  const scannerEnabledRef = useRef(false);
+  // QR scanner state is disabled; verification is done via student ID only.
+  // const [scannerActive, setScannerActive] = useState(false);
+  // const videoRef = useRef(null);
+  // const streamRef = useRef(null);
+  // const rafRef = useRef(null);
+  // const scannerEnabledRef = useRef(false);
 
   async function verifyById(id) {
     setLoading(true);
@@ -46,63 +47,9 @@ export default function VerifyPage() {
     await verifyById(id);
   }
 
-  function stopScanner() {
-    setScannerActive(false);
-    scannerEnabledRef.current = false;
-    if (rafRef.current) {
-      cancelAnimationFrame(rafRef.current);
-    }
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
-      streamRef.current = null;
-    }
-  }
-
-  async function startScanner() {
-    try {
-      if (!('BarcodeDetector' in window)) {
-        throw new Error('QR scanner is not supported in this browser');
-      }
-
-      const detector = new window.BarcodeDetector({ formats: ['qr_code'] });
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' },
-      });
-      streamRef.current = stream;
-      setScannerActive(true);
-      scannerEnabledRef.current = true;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-      }
-
-      const scanLoop = async () => {
-        if (!videoRef.current || !scannerEnabledRef.current) {
-          return;
-        }
-        try {
-          const codes = await detector.detect(videoRef.current);
-          if (codes.length > 0) {
-            const rawValue = codes[0].rawValue || '';
-            const match = rawValue.match(/\/verify\/([^/?#]+)/);
-            const extractedId = match ? decodeURIComponent(match[1]) : rawValue;
-            setStudentId(extractedId);
-            stopScanner();
-            await verifyById(extractedId);
-            return;
-          }
-        } catch (_scanError) {
-          // ignore intermittent frame read errors
-        }
-        rafRef.current = requestAnimationFrame(scanLoop);
-      };
-
-      rafRef.current = requestAnimationFrame(scanLoop);
-    } catch (scannerError) {
-      setError(scannerError.message || 'Failed to start scanner');
-      stopScanner();
-    }
-  }
+  // QR scanner logic is disabled. Verification is performed using student ID only.
+  // function stopScanner() { ... }
+  // async function startScanner() { ... }
 
   const issueDate = record?.issueTimestamp
     ? new Date(Number(record.issueTimestamp) * 1000).toLocaleString()
@@ -113,7 +60,7 @@ export default function VerifyPage() {
       <div className="page-header" style={{ textAlign: 'center' }}>
         <h1 className="page-title">Certificate Verification</h1>
         <p className="page-subtitle">
-          Verify academic credentials using student ID or QR code
+          Verify academic credentials using student ID
         </p>
       </div>
 
@@ -145,39 +92,8 @@ export default function VerifyPage() {
                 '🔍 Verify Certificate'
               )}
             </button>
-            {!scannerActive ? (
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={startScanner}
-              >
-                📷 Scan QR
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="btn btn-danger"
-                onClick={stopScanner}
-              >
-                Stop Scanner
-              </button>
-            )}
           </div>
         </form>
-
-        {scannerActive && (
-          <div style={{ marginTop: '1rem' }}>
-            <video
-              ref={videoRef}
-              style={{
-                width: '100%',
-                borderRadius: 'var(--radius)',
-                border: '2px solid var(--border)',
-              }}
-              muted
-            />
-          </div>
-        )}
 
         {error && <div className="alert alert-error mt-2">{error}</div>}
       </div>
