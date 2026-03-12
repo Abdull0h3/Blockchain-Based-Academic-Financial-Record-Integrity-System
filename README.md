@@ -23,7 +23,7 @@
 
 - **Student ID–based public verification**
   - Anyone can verify a certificate using only the student ID via `POST /api/verify` or the `/verify` page.
-  - The QR flow is optional and currently disabled in the UI; all core verification logic works with typed student IDs.
+
 
 - **Integrated academic, financial, and activity records**
   - Eligibility for certificate issuance is enforced server-side:

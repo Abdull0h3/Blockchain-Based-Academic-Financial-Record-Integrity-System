@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createHash } from "crypto";
 import fs from "fs";
 import path from "path";
-// PDFDocument will be imported dynamically to avoid bundling issues with fontkit/@swc/helpers
+import PDFDocument from "pdfkit";
 import QRCode from "qrcode";
 import { getPool } from "../../../lib/db";
 import { contract, ensureContractIsDeployed } from "../../../lib/blockchain";
@@ -77,9 +77,6 @@ function resolvePdfFontPath() {
 }
 
 async function writePdf({ studentId, fullName, program, cgpa, graduationYear }) {
-  // Dynamic import to avoid bundling issues with fontkit/@swc/helpers
-  const { default: PDFDocument } = await import("pdfkit");
-  
   const safeStudentId = String(studentId).replace(/[^a-zA-Z0-9_-]/g, "_");
   const certificatesDir = path.join(process.cwd(), "public", "uploads", "certificates");
   const fileName = `${safeStudentId}.pdf`;
@@ -95,7 +92,11 @@ async function writePdf({ studentId, fullName, program, cgpa, graduationYear }) 
 
   await new Promise((resolve, reject) => {
     // Use a real TTF font file to avoid runtime lookup issues for bundled AFM files.
-    const doc = new PDFDocument({ size: "A4", margin: 50, font: fontPath || undefined });
+    const doc = new PDFDocument({
+      size: "A4",
+      margin: 50,
+      font: fontPath || undefined,
+    });
     const stream = fs.createWriteStream(absolutePath);
 
     stream.on("finish", resolve);
@@ -103,18 +104,173 @@ async function writePdf({ studentId, fullName, program, cgpa, graduationYear }) 
     doc.on("error", reject);
     doc.pipe(stream);
 
-    doc.fontSize(24).text("University Academic Certificate", { align: "center" });
+    const pageWidth = doc.page.width;
+    const pageHeight = doc.page.height;
+
+    // Decorative border
+    const borderMargin = 30;
+    doc
+      .lineWidth(2)
+      .strokeColor("#0f172a")
+      .roundedRect(
+        borderMargin,
+        borderMargin,
+        pageWidth - borderMargin * 2,
+        pageHeight - borderMargin * 2,
+        12
+      )
+      .stroke();
+
+    // Header
+    doc
+      .fillColor("#0f172a")
+      .fontSize(26)
+      .text("University Academic Certificate", {
+        align: "center",
+        lineGap: 4,
+      });
+
+    doc
+      .fontSize(11)
+      .fillColor("#6b7280")
+      .text(
+        "This certifies that the following academic record has been officially issued by the university.",
+        {
+          align: "center",
+        }
+      );
+
+    doc.moveDown(2);
+
+    // Student details block
+    doc
+      .fillColor("#0f172a")
+      .fontSize(12)
+      .text("Student Name", { continued: false });
+    doc
+      .fontSize(16)
+      .fillColor("#111827")
+      .text(fullName || "N/A", { lineGap: 6 });
+
+    doc.moveDown(0.5);
+
+    doc
+      .fontSize(12)
+      .fillColor("#0f172a")
+      .text("Student ID", { continued: false });
+    doc
+      .fontSize(14)
+      .fillColor("#111827")
+      .text(String(studentId), { lineGap: 4 });
+
+    doc.moveDown(0.5);
+
+    doc
+      .fontSize(12)
+      .fillColor("#0f172a")
+      .text("Program", { continued: false });
+    doc
+      .fontSize(14)
+      .fillColor("#111827")
+      .text(program || "N/A", { lineGap: 4 });
+
+    doc.moveDown(0.5);
+
+    doc
+      .fontSize(12)
+      .fillColor("#0f172a")
+      .text("CGPA", { continued: false });
+    doc
+      .fontSize(14)
+      .fillColor("#111827")
+      .text(Number(cgpa).toFixed(2), { lineGap: 4 });
+
+    doc.moveDown(0.5);
+
+    doc
+      .fontSize(12)
+      .fillColor("#0f172a")
+      .text("Graduation Year", { continued: false });
+    doc
+      .fontSize(14)
+      .fillColor("#111827")
+      .text(String(graduationYear), { lineGap: 8 });
+
     doc.moveDown(1.5);
-    doc.fontSize(14).text(`Student Name: ${fullName}`);
-    doc.text(`Student ID: ${studentId}`);
-    doc.text(`Program: ${program}`);
-    doc.text(`CGPA: ${cgpa.toFixed(2)}`);
-    doc.text(`Graduation Year: ${graduationYear}`);
+
+    // Horizontal rule
+    const ruleX = borderMargin + 10;
+    const ruleWidth = pageWidth - (borderMargin + 10) * 2;
+    doc
+      .moveTo(ruleX, doc.y)
+      .lineTo(ruleX + ruleWidth, doc.y)
+      .lineWidth(0.8)
+      .strokeColor("#e5e7eb")
+      .stroke();
+
     doc.moveDown(1.5);
-    doc.fontSize(11).text("Scan QR to verify certificate:", { align: "left" });
-    doc.image(qrBuffer, { fit: [120, 120] });
-    doc.moveDown();
-    doc.fontSize(10).fillColor("gray").text(verificationUrl);
+
+    // QR and verification area (two-column style)
+    const qrSize = 130;
+    const qrX = pageWidth - borderMargin - qrSize - 10;
+    const qrY = doc.y;
+
+    // Left column: verification text
+    doc
+      .fontSize(11)
+      .fillColor("#374151")
+      .text(
+        "Scan the QR code or visit the verification URL below to independently verify this certificate against the blockchain-backed academic records system.",
+        borderMargin + 10,
+        qrY,
+        {
+          width: qrX - (borderMargin + 20),
+          align: "left",
+        }
+      );
+
+    // Right column: QR image
+    doc.image(qrBuffer, qrX, qrY, { fit: [qrSize, qrSize] });
+
+    doc.moveDown(6);
+
+    // Verification URL footer
+    doc
+      .fontSize(10)
+      .fillColor("#6b7280")
+      .text("Verification URL:", {
+        align: "left",
+      });
+    doc
+      .fontSize(10)
+      .fillColor("#2563eb")
+      .text(verificationUrl, {
+        link: verificationUrl,
+        underline: true,
+      });
+
+    doc.moveDown(2);
+
+    // Signature line placeholder
+    const sigLineWidth = 160;
+    const sigX = pageWidth - borderMargin - sigLineWidth;
+    const sigY = doc.y + 10;
+
+    doc
+      .moveTo(sigX, sigY)
+      .lineTo(sigX + sigLineWidth, sigY)
+      .lineWidth(0.8)
+      .strokeColor("#d1d5db")
+      .stroke();
+
+    doc
+      .fontSize(11)
+      .fillColor("#4b5563")
+      .text("Registrar / Authorized Signatory", sigX, sigY + 4, {
+        width: sigLineWidth,
+        align: "center",
+      });
+
     doc.end();
   });
 
