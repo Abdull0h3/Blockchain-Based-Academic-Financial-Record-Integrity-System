@@ -1,3 +1,4 @@
+// This file is used to issue a certificate to a student
 import { NextResponse } from "next/server";
 import { createHash } from "crypto";
 import fs from "fs";
